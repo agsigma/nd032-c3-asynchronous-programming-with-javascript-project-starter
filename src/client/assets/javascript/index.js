@@ -21,18 +21,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function onPageLoad() {
   try {
-    getTracks().then(tracks => {
+    await getTracks().then(tracks => {
       store.tracksData = tracks;
       const html = renderTrackCards(tracks);
       renderAt('#tracks', html);
     });
 
-    getRacers().then(racers => {
+    await getRacers().then(racers => {
       const html = renderRacerCars(racers);
       renderAt('#racers', html);
     });
   } catch (error) {
-    console.log('Problem getting tracks and racers ::', error.message);
+    console.log('Problem getting tracks and/or racers ::', error.message);
     console.error(error);
   }
 }
@@ -81,7 +81,11 @@ async function delay(ms) {
 
 // This async function controls the flow of the race, add the logic and error handling
 async function handleCreateRace() {
-  // render starting UI
+	// render starting UI
+	if (store.track_id === undefined || !store.player_id === undefined) {
+		alert('Select racer and track.');
+		return;		
+	}
   renderAt(
     '#race',
     renderRaceStartView(
@@ -97,7 +101,7 @@ async function handleCreateRace() {
 
   // invoke the API call to create the race, then save the result
   const race_id = await createRace()
-    .then(raceData => raceData.ID - 1)
+    .then(raceData => Number(raceData.ID) - 1)
     .catch(() => console.error(`This shouldn't happened`));
 
   // update the store with the race id
@@ -190,7 +194,7 @@ function handleSelectTrack(target) {
 }
 
 async function handleAccelerate() {
-  console.log('accelerate button clicked');
+  Logger('accelerate button clicked');
   // Invoke the API call to accelerate
   // this line shouldn't be awaited
   const result = accelerate(store.race_id);
